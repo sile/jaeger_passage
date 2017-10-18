@@ -1,0 +1,8 @@
+{"1.1.0",
+[{<<"local">>,{pkg,<<"local">>,<<"0.2.0">>},0},
+ {<<"thrift_protocol">>,{pkg,<<"thrift_protocol">>,<<"0.1.1">>},0}]}.
+[
+{pkg_hash,[
+ {<<"local">>, <<"91466ED42F5E3509E097C4F57ED58C03362D64D537EF8B4AF0CA90774F7DBAD3">>},
+ {<<"thrift_protocol">>, <<"0D7A949A12EFEF1B5765C13F6095B8D82895EC06EDFF07E1D9DE97E8D64AB68C">>}]}
+].

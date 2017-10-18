@@ -1,0 +1,18 @@
+{application, jaegerl,
+ [{description, "An OTP application"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, { jaegerl_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    local,
+    thrift_protocol
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {maintainers, []},
+  {licenses, ["MIT"]},
+  {links, []}
+ ]}.
