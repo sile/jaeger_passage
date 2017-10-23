@@ -1,4 +1,4 @@
--module(jaegerl_local_ns).
+-module(jaeger_passage_local_ns).
 
 -export([child_spec/0]).
 -export([tracer_name/1]).
