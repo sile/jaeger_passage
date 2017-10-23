@@ -13,4 +13,9 @@ start_link() ->
 
 init([]) ->
     NameServer = jaeger_passage_local_ns:child_spec(),
-    {ok, {#{strategy => rest_for_one}, [NameServer]} }.
+    ReporterSup = #{
+      id    => jaeger_passage_reporter_sup,
+      start => {jaeger_passage_reporter_sup, start_link, []},
+      type  => supervisor
+     },
+    {ok, {#{strategy => rest_for_one}, [NameServer, ReporterSup]} }.
