@@ -1,0 +1,42 @@
+@copyright 2017 Takeru Ohta <phjgt308@gmail.com>
+
+@doc Jaeger client library for Erlang
+
+This is an extention of <a href="https://github.com/sile/passage">passage</a>(An OpenTracing library).
+
+=== Examples ===
+
+```
+// Starts Jaeger in the background
+$ docker run -d -p6831:6831/udp -p6832:6832/udp -p16686:16686 jaegertracing/all-in-one:latest
+
+// Starts Erlang Shell
+$ rebar3 shell
+> Context = jaeger_passage_span_context.
+> Sampler = passage_sampler_all:new().
+> {ok, Reporter} = jaeger_passage_reporter:start(example_repoter).
+> ok = passage_tracer_registry:register(example_tracer, Context, Sampler, Reporter).
+
+%% Starts a root span.
+> RootSpan = passage:start_root_span(example_root, example_tracer).
+
+%% Starts a child span.
+> ChildSpan = passage:start_span(example_child, {child_of, RootSpan}).
+
+%% Finishes the spans
+> passage:finish_span(ChildSpan).
+> passage:finish_span(RootSpan).
+
+> q().
+
+// Browses the tracing result
+$ firefox localhost:16686
+'''
+
+=== References ===
+
+<ul>
+  <li><a href="http://opentracing.io/">OpenTracing</a></li>
+  <li><a href="https://uber.github.io/jaeger/">Jaeger</a></li>
+  <li><a href="https://github.com/jaegertracing/jaeger-client-go/blob/v2.9.0/README.md">jaeger-client-go/README.md</a></li>
+</ul>

@@ -1,3 +1,15 @@
+%% @copyright 2017 Takeru Ohta <phjgt308@gmail.com>
+%%
+%% @doc Span context for Jaeger
+%%
+%% === References ===
+%%
+%% <ul>
+%% <li><a href="https://github.com/jaegertracing/jaeger-client-go/blob/v2.9.0/README.md">jaeger-client-go/README.md</a></li>
+%% <li><a href="https://github.com/uber/jaeger-client-go/tree/v2.9.0/context.go">context.go</a></li>
+%% <li><a href="https://github.com/uber/jaeger-client-go/tree/v2.9.0/propagation.go">propagation.go</a></li>
+%% </ul>
+
 -module(jaeger_passage_span_context).
 
 -behaviour(passage_span_context).
@@ -7,14 +19,15 @@
 %%------------------------------------------------------------------------------
 %% Exported API
 %%------------------------------------------------------------------------------
+-export_type([state/0]).
+
+%%------------------------------------------------------------------------------
+%% Application Internal API
+%%------------------------------------------------------------------------------
 -export([get_trace_id/1]).
 -export([get_span_id/1]).
 -export([get_debug_id/1]).
 -export([get_flags/1]).
-
--export_type([state/0]).
--export_type([trace_id/0]).
--export_type([span_id/0]).
 
 %%------------------------------------------------------------------------------
 %% 'passage_span_context' Callback API
@@ -41,22 +54,39 @@
 %% Exported Types
 %%------------------------------------------------------------------------------
 -opaque state() :: #?STATE{}.
-
--type trace_id() :: 0..16#FFFFFFFFFFFFFFFF.
-
--type span_id() :: 0..16#FFFFFFFF.
+%% The state of a jaeger span context.
 
 %%------------------------------------------------------------------------------
-%% Exported Functions
+%% Types
 %%------------------------------------------------------------------------------
+-type trace_id() :: 0..16#FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF.
+%% Tracer identifier (128-bit unsigned integer).
+%%
+%% This represents globally unique ID of the trace.
+%% Usually generated as a random number.
+
+-type span_id() :: 0..16#FFFFFFFFFFFFFFFF.
+%% Span identifier (64-bit unsigned integer).
+%%
+%% This represents span ID that must be unique within its trace,
+%% but does not have to be globally unique.
+%%
+%% Note that the ID `0' is used for representing invalid spans.
+
+%%------------------------------------------------------------------------------
+%% Application Internal Functions
+%%------------------------------------------------------------------------------
+%% @private
 -spec get_trace_id(passage_span_context:context()) -> trace_id().
 get_trace_id(Context) ->
     (passage_span_context:get_state(Context))#?STATE.trace_id.
 
+%% @private
 -spec get_span_id(passage_span_context:context()) -> span_id().
 get_span_id(Context) ->
     (passage_span_context:get_state(Context))#?STATE.span_id.
 
+%% @private
 -spec get_debug_id(passage_span_context:context()) -> {ok, binary()} | eror.
 get_debug_id(Context) ->
     State = passage_span_context:get_state(Context),
@@ -65,6 +95,7 @@ get_debug_id(Context) ->
         DebugId   -> {ok, DebugId}
     end.
 
+%% @private
 -spec get_flags(passage_span_context:context()) -> 0..16#FFFFFFFF.
 get_flags(Context) ->
     State = passage_span_context:get_state(Context),
@@ -76,15 +107,15 @@ get_flags(Context) ->
 %% @private
 make_span_context_state([]) ->
     #?STATE{
-        trace_id   = rand:uniform(16#FFFFFFFFFFFFFFFF),
-        span_id    = rand:uniform(16#FFFFFFFF),
+        trace_id   = rand:uniform(16#FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF),
+        span_id    = rand:uniform(16#FFFFFFFFFFFFFFFF),
         is_sampled = true
        };
 make_span_context_state([{_, Ref} | _]) ->
     #?STATE{trace_id = TraceId} = passage_span_context:get_state(passage_span:get_context(Ref)),
     #?STATE{
         trace_id   = TraceId,
-        span_id    = rand:uniform(16#FFFFFFFF),
+        span_id    = rand:uniform(16#FFFFFFFFFFFFFFFF),
         is_sampled = true
        }.
 

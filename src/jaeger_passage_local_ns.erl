@@ -1,8 +1,19 @@
+%% @copyright 2017 Takeru Ohta <phjgt308@gmail.com>
+%%
+%% @doc Application Local Name Server
+%%
+%% @private
 -module(jaeger_passage_local_ns).
 
+%%------------------------------------------------------------------------------
+%% Application Internal API
+%%------------------------------------------------------------------------------
 -export([child_spec/0]).
 -export([reporter_name/1]).
 
+%%------------------------------------------------------------------------------
+%% Application Internal Functions
+%%------------------------------------------------------------------------------
 -spec child_spec() -> supervisor:child_spec().
 child_spec() ->
     local:name_server_child_spec(?MODULE).

@@ -1,16 +1,30 @@
+%% @copyright 2017 Takeru Ohta <phjgt308@gmail.com>
+%%
+%% @private
 -module(jaeger_passage_sup).
 
 -behaviour(supervisor).
 
+%%------------------------------------------------------------------------------
+%% Application Internal API
+%%------------------------------------------------------------------------------
 -export([start_link/0]).
 
+%%------------------------------------------------------------------------------
+%% 'supervisor' Callback API
+%%------------------------------------------------------------------------------
 -export([init/1]).
 
--define(SERVER, ?MODULE).
-
+%%------------------------------------------------------------------------------
+%% Application Internal Functions
+%%-------------------------------------------------------------------------------
+-spec start_link() -> {ok, pid()} | {error, Reason :: term()}.
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
+%%------------------------------------------------------------------------------
+%% 'supervisor' Callback Functions
+%%------------------------------------------------------------------------------
 init([]) ->
     NameServer = jaeger_passage_local_ns:child_spec(),
     ReporterSup = #{

@@ -1,3 +1,31 @@
+%% @copyright 2017 Takeru Ohta <phjgt308@gmail.com>
+%%
+%% @doc A reporter that sends the spans to an jaeger agent
+%%
+%% === Examples ===
+%%
+%% ```
+%% %% Starts `example_reporter'
+%% {ok, Reporter} = jaeger_passage_reporter:start(example_reporter).
+%% [example_reporter] = jaeger_passage_reporter:which_reporters().
+%%
+%% %% Registers `example_tracer'
+%% Context = jaeger_passage_span_context.
+%% Sampler = passage_sampler_all:new().
+%% ok = passage_tracer_registry:register(example_tracer, Context, Sampler, Reporter).
+%%
+%% %% Starts and finishes a span
+%% Span = passage:start_root_span(example, example_tracer).
+%%
+%% passage:finish_span(Span). % The span will send to the jaeger agent on the localhost
+%% '''
+%%
+%% === Refereces ===
+%%
+%% <ul>
+%% <li><a href="http://jaeger.readthedocs.io/en/latest/architecture/#agent">Jaeger - Architecture - Agent</a></li>
+%% <li><a href="http://jaeger.readthedocs.io/en/latest/deployment/#agent">Jaeger - Deployment - Agent</a></li>
+%% </ul>
 -module(jaeger_passage_reporter).
 
 -behaviour(passage_reporter).
@@ -49,18 +77,28 @@
 %% Exported Types
 %%------------------------------------------------------------------------------
 -type reporter_id() :: atom().
+%% Reporter identifier.
 
 -type start_options() :: [start_option()].
+%% Options for {@link start/2}.
 
 -type start_option() :: {thrift_format, thrift_protocol:format()}
                       | {agent_host, inet:hostname()}
                       | {agent_port, inet:port_number()}
                       | {service_name, atom()}
                       | {service_tags, passage:tags()}.
+%% <ul>
+%%   <li><b>thrift_format</b>: The format for encoding thrift messages. The default value is `compact'.</li>
+%%   <li><b>agent_host</b>: The hostname of the jaeger agent. The default value is `"127.0.0.1"'.</li>
+%%   <li><b>agent_port</b>: The port of the jaeger agent. The default values for the thrift format `compact' and `binary' are `6831' and `6832' respectively.</li>
+%%   <li><b>service_name</b>: The name of the service which reports the spans. The default value is `ReporterId'.</li>
+%%   <li><b>service_tags</b>: The tags of the service. The default value is `#{}'.</li>
+%% </ul>
 
 %%------------------------------------------------------------------------------
 %% Application Internal Functions
 %%------------------------------------------------------------------------------
+%% @private
 -spec start_link(reporter_id(), start_options()) -> {ok, pid()} | {error, Reason} when
       Reason :: {already_started, pid()} | term().
 start_link(ReporterId, Options) ->
@@ -76,18 +114,29 @@ start_link(ReporterId, Options) ->
 start(ReporterId) ->
     start(ReporterId, []).
 
--spec start(reporter_id(), start_options()) -> {ok, passage_reporter:reporter()} | {error, Reason} when
+%% @doc Starts a reporter process.
+-spec start(reporter_id(), start_options()) -> {ok, Reporter} | {error, Reason} when
+      Reporter :: passage_reporter:reporter(),
       Reason :: {already_started, pid()} | term().
 start(ReporterId, Options) ->
+    Args = [ReporterId, Options],
+    is_atom(ReporterId) orelse error(badarg, Args),
+    is_list(Options) orelse error(badarg, Args),
+
     case jaeger_passage_reporter_sup:start_child(ReporterId, Options) of
         {error, Reason} -> {error, Reason};
         {ok, _Pid}      -> {ok, passage_reporter:new(?MODULE, ReporterId)}
     end.
 
+%% @doc Stops the reporter process.
+%%
+%% If the reporter which has the identifier `ReporterId' has not been started,
+%% it will be simply ignored.
 -spec stop(reporter_id()) -> ok.
 stop(ReporterId) ->
     jaeger_passage_reporter_sup:stop_child(ReporterId).
 
+%% @doc Returns the list of the running reporters.
 -spec which_reporters() -> [reporter_id()].
 which_reporters() ->
     jaeger_passage_reporter_sup:which_children().

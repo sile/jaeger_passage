@@ -1,21 +1,33 @@
+%% @copyright 2017 Takeru Ohta <phjgt308@gmail.com>
+%%
+%% @private
 -module(jaeger_passage_reporter_sup).
 
 -behaviour(supervisor).
 
+%%------------------------------------------------------------------------------
+%% Application Internal API
+%%------------------------------------------------------------------------------
 -export([start_link/0]).
 -export([start_child/2]).
 -export([stop_child/1]).
 -export([which_children/0]).
 
+%%------------------------------------------------------------------------------
+%% 'supervisor' Callback API
+%%------------------------------------------------------------------------------
 -export([init/1]).
 
--define(SERVER, ?MODULE).
-
+%%------------------------------------------------------------------------------
+%% Application Internal Functions
+%%------------------------------------------------------------------------------
+-spec start_link() -> {ok, pid()} | {error, Reason :: term()}.
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
--spec start_child(jaeger_passage_reporter:reporter_id(), jaeger_passage_reporter:start_options()) ->
-                         {ok, pid()} | {error, Reason} when
+-spec start_child(ReporterId, Options) -> {ok, pid()} | {error, Reason} when
+      ReporterId :: jaeger_passage_reporter:reporter_id(),
+      Options :: jaeger_passage_reporter:start_options(),
       Reason :: {already_started, pid()} | term().
 start_child(ReporterId, Options) ->
     Child = #{
@@ -35,5 +47,8 @@ stop_child(ReporterId) ->
 which_children() ->
     [Id || {Id, _, _, _} <- supervisor:which_children(?MODULE)].
 
+%%------------------------------------------------------------------------------
+%% 'supervisor' Callback Functions
+%%------------------------------------------------------------------------------
 init([]) ->
     {ok, {#{}, []}}.
