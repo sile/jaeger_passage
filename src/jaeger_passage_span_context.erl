@@ -112,14 +112,13 @@ make_span_context_state([]) ->
         is_sampled = true
        };
 make_span_context_state([{_, Ref} | _]) ->
-    #?STATE{trace_id = TraceId} = passage_span_context:get_state(passage_span:get_context(Ref)),
+    #?STATE{trace_id = TraceId} =
+        passage_span_context:get_state(passage_span:get_context(Ref)),
     #?STATE{
         trace_id   = TraceId,
         span_id    = rand:uniform(16#FFFFFFFFFFFFFFFF),
         is_sampled = true
        }.
-
-%% https://github.com/jaegertracing/jaeger-client-go/blob/v2.9.0/propagation.go
 
 %% @private
 inject_span_context(Context, binary, InjectFun, Carrier) ->
@@ -136,7 +135,7 @@ inject_span_context(Context, Format, InjectFun, Carrier) ->
             text_map ->
                 fun({K, V}) -> {?TRACE_BAGGAGE_HEADER(K), V} end;
             http_header ->
-                fun({K, V}) -> {?TRACE_BAGGAGE_HEADER(K), http_uri:encode(V)} end
+                fun({K, V}) -> {?TRACE_BAGGAGE_HEADER(K), escape(V)} end
         end,
     Items0 = lists:map(MapFun, maps:to_list(passage_span_context:get_baggage_items(Context))),
     Items1 = [{?TRACER_STATE_HEADER_NAME, state_to_string(State)} | Items0],
@@ -163,7 +162,7 @@ extract_span_context(Format, IterateFun, Carrier) ->
     DecodeValue =
         case Format of
             text_map -> fun (V) -> V end;
-            http_header -> fun http_uri:decode/1
+            http_header -> fun unescape/1
         end,
     Map = extract_to_map(IterateFun, Carrier, DecodeValue, #{}),
     case maps:is_key(state, Map) orelse maps:is_key(debug_id, Map) of
@@ -206,7 +205,8 @@ extract_to_map(IterateFun, Carrier0, DecodeValue, Map0) ->
                                       Pairs0)],
                         maps:merge(Map0, maps:from_list(Pairs1));
                     ?TRACE_BAGGAGE_HEADER(Name) ->
-                        maps:put(Name, DecodeValue(V), Map0)
+                        maps:put(Name, DecodeValue(V), Map0);
+                    _ -> Map0
                 end,
             extract_to_map(IterateFun, Carrier1, DecodeValue, Map1)
     end.
@@ -278,3 +278,11 @@ decode_baggage_items(_, 0, Items) ->
 decode_baggage_items(<<KeySize:32, Key:KeySize/binary,
                        ValueSize:32, Value:ValueSize/binary, Bin/binary>>, Count, Items) ->
     decode_baggage_items(Bin, Count - 1, maps:put(Key, Value, Items)).
+
+-spec escape(binary()) -> binary().
+escape(Bin) ->
+    list_to_binary(http_uri:encode(binary_to_list(Bin))).
+
+-spec unescape(binary()) -> binary().
+unescape(Bin) ->
+    list_to_binary(http_uri:decode(binary_to_list(Bin))).
