@@ -1,5 +1,5 @@
 {application, jaeger_passage,
- [{description, "An OTP application"},
+ [{description, "Jaeger client library for Erlang"},
   {vsn, "0.1.0"},
   {registered, []},
   {mod, { jaeger_passage_app, []}},
@@ -14,7 +14,7 @@
   {env,[]},
   {modules, []},
 
-  {maintainers, []},
+  {maintainers,["Takeru Ohta"]},
   {licenses, ["MIT"]},
-  {links, []}
+  {links, [{"GitHub","https://github.com/sile/passage"}]}
  ]}.
