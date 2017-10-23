@@ -2,7 +2,7 @@
 
 @doc Jaeger client library for Erlang
 
-This is an extention of <a href="https://github.com/sile/passage">passage</a>(An OpenTracing library).
+This is an extension of <a href="https://github.com/sile/passage">passage</a>(An OpenTracing library).
 
 === Examples ===
 
