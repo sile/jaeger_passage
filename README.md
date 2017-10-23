@@ -51,4 +51,5 @@ References
 -----------
 
 - [OpenTracing](http://opentracing.io/)
+- [Jaeger](https://uber.github.io/jaeger/)
 - [jaeger-client-go/README.md](https://github.com/jaegertracing/jaeger-client-go/blob/v2.9.0/README.md)
