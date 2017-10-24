@@ -39,6 +39,7 @@
 -export([start/1, start/2]).
 -export([stop/1]).
 -export([which_reporters/0]).
+-export([get_id/1]).
 
 -export_type([reporter_id/0]).
 -export_type([start_option/0, start_options/0]).
@@ -140,6 +141,15 @@ stop(ReporterId) ->
 -spec which_reporters() -> [reporter_id()].
 which_reporters() ->
     jaeger_passage_reporter_sup:which_children().
+
+%% @doc Returns the identifier of `Reporter'.
+%%
+%% Note that if `Reporter' is one which has not been created by {@link start/2},
+%% this function will crash.
+-spec get_id(passage_reporter:reporter()) -> reporter_id().
+get_id(Reporter) ->
+    ?MODULE = passage_reporter:get_module(Reporter),
+    passage_reporter:get_state(Reporter).
 
 %%------------------------------------------------------------------------------
 %% 'passage_reporter' Callback Functions
