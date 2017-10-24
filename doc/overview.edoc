@@ -12,10 +12,8 @@ $ docker run -d -p6831:6831/udp -p6832:6832/udp -p16686:16686 jaegertracing/all-
 
 // Starts Erlang Shell
 $ rebar3 shell
-> Context = jaeger_passage_span_context.
 > Sampler = passage_sampler_all:new().
-> {ok, Reporter} = jaeger_passage_reporter:start(example_repoter).
-> ok = passage_tracer_registry:register(example_tracer, Context, Sampler, Reporter).
+> ok = jaeger_passage:start_tracer(example_tracer, Sampler).
 
 %% Starts a root span.
 > RootSpan = passage:start_root_span(example_root, example_tracer).

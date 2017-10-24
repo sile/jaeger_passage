@@ -25,11 +25,9 @@ Starts Erlang Shell:
 ```erlang
 $ rebar3 shell
 
-% Starts `example_repoter` and registers `example_tracer`
-> Context = jaeger_passage_span_context.
+% Starts `example_tracer`
 > Sampler = passage_sampler_all:new().
-> {ok, Reporter} = jaeger_passage_reporter:start(example_repoter).
-> ok = passage_tracer_registry:register(example_tracer, Context, Sampler, Reporter).
+> ok = jaeger_passage:start_tracer(example_tracer, Sampler).
 
 % Starts a root span.
 > RootSpan = passage:start_root_span(example_root, example_tracer).
