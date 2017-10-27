@@ -19,9 +19,9 @@ basic_test() ->
     ok = passage_tracer_registry:register(test_tracer, Context, Sampler, Reporter),
 
     %% Starts and finishes spans
-    passage_pd:start_root_span(test_root, test_tracer),
+    passage_pd:start_span(test_root, [{tracer, test_tracer}]),
     passage_pd:start_span(test_child),
-    passage_pd:error_log("Hello World"),
+    passage_pd:log(#{message => "Hello World"}),
     passage_pd:finish_span(),
     passage_pd:finish_span(),
     timer:sleep(50),

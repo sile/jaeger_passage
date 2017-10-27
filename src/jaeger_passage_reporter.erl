@@ -15,7 +15,7 @@
 %% ok = passage_tracer_registry:register(example_tracer, Context, Sampler, Reporter).
 %%
 %% %% Starts and finishes a span
-%% Span = passage:start_root_span(example, example_tracer).
+%% Span = passage:start_span(example, [{tracer, example_tracer}]).
 %%
 %% passage:finish_span(Span). % The span will send to the jaeger agent on the localhost
 %% '''

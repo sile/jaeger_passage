@@ -57,8 +57,8 @@ start_tracer(Tracer, Sampler) ->
 %% [example_tracer] = jaeger_passage_reporter:which_reporters().
 %%
 %% %% Starts and finishes spans
-%% passage_pd:start_root_span(example_span, example_tracer).
-%% passage_pd:error_log("Hello World").
+%% passage_pd:start_span(example_span, [{tracer, example_tracer}]).
+%% passage_pd:log(#{message => "something wrong"}, [error]).
 %% passage_pd:finish_span().
 %%
 %% %% Stops `example_tracer'

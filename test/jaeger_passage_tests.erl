@@ -17,9 +17,9 @@ basic_test() ->
     [test_tracer] = jaeger_passage_reporter:which_reporters(),
 
     %% Starts and finishes spans
-    passage_pd:start_root_span(test_root, test_tracer),
+    passage_pd:start_span(test_root, [{tracer, test_tracer}]),
     passage_pd:start_span(test_child),
-    passage_pd:error_log("Hello World"),
+    passage_pd:log(#{message => "Hello World"}),
     passage_pd:finish_span(),
     passage_pd:finish_span(),
     timer:sleep(50),

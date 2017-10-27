@@ -121,7 +121,7 @@ make_span(Span) ->
         }
       }.
 
--spec make_references(passage_span:normalized_refs()) -> thrift_protocol:thrift_list().
+-spec make_references(passage:refs()) -> thrift_protocol:thrift_list().
 make_references(Refs) ->
     Elements =
         lists:filtermap(
@@ -135,7 +135,7 @@ make_references(Refs) ->
           Refs),
     ?LIST(Elements).
 
--spec make_reference(passage_span:normalized_ref()) -> thrift_protocol:struct().
+-spec make_reference(passage:ref()) -> thrift_protocol:struct().
 make_reference(Ref) ->
     RefType =
         case Ref of

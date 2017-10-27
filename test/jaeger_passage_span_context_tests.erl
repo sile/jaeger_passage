@@ -17,7 +17,7 @@ propagation_test_() ->
       {"Binary format",
        fun () ->
                ok = start_tracer(),
-               Span0 = passage:start_root_span(foo, tracer),
+               Span0 = passage:start_span(foo, [{tracer, tracer}]),
                Span1 = passage:set_baggage_items(Span0, #{<<"a">> => <<"b">>}),
 
                #{<<"binary">> := Injected} =
@@ -35,7 +35,7 @@ propagation_test_() ->
       {"TextMap format",
        fun () ->
                ok = start_tracer(),
-               Span0 = passage:start_root_span(foo, tracer),
+               Span0 = passage:start_span(foo, [{tracer, tracer}]),
                Span1 = passage:set_baggage_items(Span0, #{<<"a">> => <<"b">>}),
 
                #{<<"uber-trace-id">> := _, <<"uberctx-a">> := _} = Injected =
@@ -53,7 +53,7 @@ propagation_test_() ->
       {"HttpHeader format",
        fun () ->
                ok = start_tracer(),
-               Span0 = passage:start_root_span(foo, tracer),
+               Span0 = passage:start_span(foo, [{tracer, tracer}]),
                Span1 = passage:set_baggage_items(Span0, #{<<"a">> => <<"b">>}),
 
                #{<<"uber-trace-id">> := _, <<"uberctx-a">> := _} = Injected =
