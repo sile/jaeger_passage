@@ -26,6 +26,7 @@
 %%------------------------------------------------------------------------------
 -export([get_trace_id/1]).
 -export([get_span_id/1]).
+-export([get_parent_span_id/1]).
 -export([get_debug_id/1]).
 -export([get_flags/1]).
 
@@ -44,8 +45,9 @@
 
 -record(?STATE,
         {
-          trace_id   = 0     :: trace_id(),
-          span_id    = 0     :: span_id(),
+          trace_id = 0       :: trace_id(),
+          span_id = 0        :: span_id(),
+          parent_span_id = 0 :: span_id(),
           is_sampled = false :: boolean(),
           debug_id           :: binary() | undefined
         }).
@@ -86,6 +88,10 @@ get_trace_id(Context) ->
 get_span_id(Context) ->
     (passage_span_context:get_state(Context))#?STATE.span_id.
 
+-spec get_parent_span_id(passage_span_context:context()) -> span_id().
+get_parent_span_id(Context) ->
+    (passage_span_context:get_state(Context))#?STATE.parent_span_id.
+
 %% @private
 -spec get_debug_id(passage_span_context:context()) -> {ok, binary()} | eror.
 get_debug_id(Context) ->
@@ -111,13 +117,19 @@ make_span_context_state([]) ->
         span_id    = rand:uniform(16#FFFFFFFFFFFFFFFF),
         is_sampled = true
        };
-make_span_context_state([{_, Ref} | _]) ->
-    #?STATE{trace_id = TraceId} =
+make_span_context_state([{Type, Ref} | _]) ->
+    #?STATE{trace_id = TraceId, span_id = RefSpanId, parent_span_id = RefParentId} =
         passage_span_context:get_state(passage_span:get_context(Ref)),
+    ParentId =
+        case Type of
+            child_of     -> RefSpanId;
+            follows_from -> RefParentId
+        end,
     #?STATE{
-        trace_id   = TraceId,
-        span_id    = rand:uniform(16#FFFFFFFFFFFFFFFF),
-        is_sampled = true
+        trace_id       = TraceId,
+        span_id        = rand:uniform(16#FFFFFFFFFFFFFFFF),
+        parent_span_id = ParentId,
+        is_sampled     = true
        }.
 
 %% @private
@@ -226,34 +238,36 @@ get_flags_from_state(State) ->
     FlagSampled + FlagDebug.
 
 -spec state_to_string(#?STATE{}) -> binary().
-state_to_string(State = #?STATE{trace_id = TraceId, span_id = SpanId}) ->
-    DummyParentId = 0,
+state_to_string(State) ->
+    #?STATE{trace_id = TraceId, span_id = SpanId, parent_span_id = ParentId} = State,
     Flags = get_flags_from_state(State),
     list_to_binary(io_lib:format("~.16b:~.16b:~.16b:~.16b",
-                                 [TraceId, SpanId, DummyParentId, Flags])).
+                                 [TraceId, SpanId, ParentId, Flags])).
 
 -spec state_from_string(binary()) -> #?STATE{}.
 state_from_string(Str) ->
-    {ok, [TraceId, SpanId, _ParentSpanId, Flags], _} =
+    {ok, [TraceId, SpanId, ParentSpanId, Flags], _} =
         io_lib:fread("~16u:~16u:~16u:~16u", binary_to_list(Str)),
     #?STATE{
         trace_id = TraceId,
         span_id = SpanId,
+        parent_span_id = ParentSpanId,
         is_sampled = (Flags band ?FLAG_SAMPLED) =/= 0
        }.
 
 -spec encode_state(#?STATE{}) -> binary().
-encode_state(State = #?STATE{trace_id = TraceId, span_id = SpanId}) ->
-    DummyParentId = 0,
+encode_state(State) ->
+    #?STATE{trace_id = TraceId, span_id = SpanId, parent_span_id = ParentId} = State,
     Flags = get_flags_from_state(State),
-    <<TraceId:128, SpanId:64, DummyParentId:64, Flags:32>>.
+    <<TraceId:128, SpanId:64, ParentId:64, Flags:32>>.
 
 -spec decode_state(binary()) -> {#?STATE{}, binary()}.
-decode_state(<<TraceId:128, SpanId:64, _:64, Flags:32, Bin/binary>>) ->
+decode_state(<<TraceId:128, SpanId:64, ParentId:64, Flags:32, Bin/binary>>) ->
     State =
         #?STATE{
             trace_id = TraceId,
             span_id = SpanId,
+            parent_span_id = ParentId,
             is_sampled = (Flags band ?FLAG_SAMPLED) =/= 0
            },
     {State, Bin}.
