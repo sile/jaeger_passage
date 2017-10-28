@@ -82,12 +82,20 @@ make_tag_value(X) when is_binary(X)  -> {?TAG_TYPE_STRING, 3, X};
 make_tag_value(X) when is_float(X)   -> {?TAG_TYPE_DOUBLE, 4, X};
 make_tag_value(X) when is_integer(X) -> {?TAG_TYPE_LONG,   6, {i64, X}};
 make_tag_value(X) ->
-    try list_to_binary(X) of
-        Binary -> {?TAG_TYPE_STRING, 3, Binary}
-    catch
-        error:badarg ->
-            Binary = list_to_binary(io_lib:format("~w", [X])),
-            {?TAG_TYPE_STRING, 3, Binary}
+    Size = erlang:external_size(X),
+    case Size > 1024 of
+        true ->
+            {?TAG_TYPE_STRING, 3,
+             list_to_binary(io_lib:format("...~p bytes... (ommitted by ~p)",
+                                          [Size, ?MODULE]))};
+        false ->
+            try list_to_binary(X) of
+                Binary -> {?TAG_TYPE_STRING, 3, Binary}
+            catch
+                error:badarg ->
+                    Binary = list_to_binary(io_lib:format("~1024p", [X])),
+                    {?TAG_TYPE_STRING, 3, Binary}
+            end
     end.
 
 -spec make_spans([passage_span:span()]) -> thrift_protocol:thrift_list().
