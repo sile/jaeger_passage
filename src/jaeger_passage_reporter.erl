@@ -182,7 +182,8 @@ init({ReporterId, Options}) ->
           Tags0,
           #{
             ?JAEGER_CLIENT_VERSION_TAG_KEY => list_to_binary(["jaeger_passage-", Version]),
-            ?TRACER_HOSTNAME_TAG_KEY => list_to_binary(Hostname)
+            ?TRACER_HOSTNAME_TAG_KEY => list_to_binary(Hostname),
+            'erlang.node' => node()
            }),
     {ok, Socket} = gen_udp:open(0),
     State =
