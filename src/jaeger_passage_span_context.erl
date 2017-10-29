@@ -117,14 +117,9 @@ make_span_context_state([]) ->
         span_id    = rand:uniform(16#FFFFFFFFFFFFFFFF),
         is_sampled = true
        };
-make_span_context_state([{Type, Ref} | _]) ->
-    #?STATE{trace_id = TraceId, span_id = RefSpanId, parent_span_id = RefParentId} =
+make_span_context_state([{_, Ref} | _]) ->
+    #?STATE{trace_id = TraceId, span_id = ParentId} =
         passage_span_context:get_state(passage_span:get_context(Ref)),
-    ParentId =
-        case Type of
-            child_of     -> RefSpanId;
-            follows_from -> RefParentId
-        end,
     #?STATE{
         trace_id       = TraceId,
         span_id        = rand:uniform(16#FFFFFFFFFFFFFFFF),
