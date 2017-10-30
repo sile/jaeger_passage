@@ -106,7 +106,14 @@ make_spans(Spans) ->
 make_span(Span) ->
     Context = passage_span:get_context(Span),
     TraceId = jaeger_passage_span_context:get_trace_id(Context),
-    ParentSpanId = jaeger_passage_span_context:get_parent_span_id(Context),
+    Refs = passage_span:get_refs(Span),
+    ParentSpanId =
+        case Refs of
+            [{_, Parent} | _] ->
+                jaeger_passage_span_context:get_span_id(
+                  passage_span:get_context(Parent));
+            _ -> 0
+        end,
     Tags0 = passage_span:get_tags(Span),
     Tags1 =
         case jaeger_passage_span_context:get_debug_id(Context) of
@@ -120,7 +127,7 @@ make_span(Span) ->
          3 => {i64, jaeger_passage_span_context:get_span_id(Context)},
          4 => {i64, ParentSpanId},
          5 => atom_to_binary(passage_span:get_operation_name(Span), utf8),
-         6 => make_references(passage_span:get_refs(Span)),
+         6 => make_references(Refs),
          7 => {i32, jaeger_passage_span_context:get_flags(Context)},
          8 => {i64, timestamp_to_us(passage_span:get_start_time(Span))},
          9 => {i64, get_duration_us(Span)},
