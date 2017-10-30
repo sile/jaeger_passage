@@ -106,7 +106,12 @@ make_spans(Spans) ->
 make_span(Span) ->
     Context = passage_span:get_context(Span),
     TraceId = jaeger_passage_span_context:get_trace_id(Context),
-    Refs = passage_span:get_refs(Span),
+    Refs =
+        lists:filter(
+          fun ({_, S}) ->
+                  0 =/= jaeger_passage_span_context:get_span_id(passage_span:get_context(S))
+          end,
+          passage_span:get_refs(Span)),
     ParentSpanId =
         case Refs of
             [{_, Parent} | _] ->
