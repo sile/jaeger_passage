@@ -1,6 +1,6 @@
 {application,jaeger_passage,
              [{description,"Jaeger client library for Erlang"},
-              {vsn,"0.1.4"},
+              {vsn,"0.1.5"},
               {registered,[]},
               {mod,{jaeger_passage_app,[]}},
               {applications,[kernel,stdlib,inets,local,passage,
