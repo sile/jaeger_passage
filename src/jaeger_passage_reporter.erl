@@ -15,7 +15,7 @@
 %% ok = passage_tracer_registry:register(example_tracer, Context, Sampler, Reporter).
 %%
 %% %% Starts and finishes a span
-%% Span = passage:start_root_span(example, example_tracer).
+%% Span = passage:start_span(example, [{tracer, example_tracer}]).
 %%
 %% passage:finish_span(Span). % The span will send to the jaeger agent on the localhost
 %% '''
@@ -182,7 +182,8 @@ init({ReporterId, Options}) ->
           Tags0,
           #{
             ?JAEGER_CLIENT_VERSION_TAG_KEY => list_to_binary(["jaeger_passage-", Version]),
-            ?TRACER_HOSTNAME_TAG_KEY => list_to_binary(Hostname)
+            ?TRACER_HOSTNAME_TAG_KEY => list_to_binary(Hostname),
+            'erlang.node' => node()
            }),
     {ok, Socket} = gen_udp:open(0),
     State =

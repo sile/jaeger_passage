@@ -18,9 +18,11 @@
 %% Options for {@link start_tracer/3}.
 
 -type start_tracer_option() :: {reporter_id, jaeger_passage_reporter:reporter_id()}
+                             | {max_queue_len, non_neg_integer() | infinity}
                              | jaeger_passage_reporter:start_option().
 %% <ul>
-%%   <li><b>reporter_id</b>: In {@link start_tracer/3} function, it starts a reporter with this identifier. The default value is `Tracer'.</li>
+%%   <li>`reporter_id': In {@link start_tracer/3} function, it starts a reporter with this identifier. The default value is `Tracer'.</li>
+%%   <li>`max_queue_len': While the queue length of the reporter process exceeds this value, all new spans are rejected by the sampler. The default value is `1024'. Note that this value only affects the root spans (e.g., the child spans never be discarded by this limitation).</li>
 %% </ul>
 
 %%------------------------------------------------------------------------------
@@ -57,8 +59,8 @@ start_tracer(Tracer, Sampler) ->
 %% [example_tracer] = jaeger_passage_reporter:which_reporters().
 %%
 %% %% Starts and finishes spans
-%% passage_pd:start_root_span(example_span, example_tracer).
-%% passage_pd:error_log("Hello World").
+%% passage_pd:start_span(example_span, [{tracer, example_tracer}]).
+%% passage_pd:log(#{message => "something wrong"}, [error]).
 %% passage_pd:finish_span().
 %%
 %% %% Stops `example_tracer'
@@ -70,13 +72,22 @@ start_tracer(Tracer, Sampler) ->
       Tracer :: passage:tracer_id(),
       Sampler :: passage_sampler:sampler(),
       Options :: start_tracer_options().
-start_tracer(Tracer, Sampler, Options) ->
+start_tracer(Tracer, Sampler0, Options) ->
     ReporterId = proplists:get_value(reporter_id, Options, Tracer),
+    MaxQueueLen = proplists:get_value(max_queue_len, Options, 1024),
     Context = jaeger_passage_span_context,
+    Sampler1 =
+        case MaxQueueLen of
+            infinity -> Sampler0;
+            Max      ->
+                (is_integer(Max) andalso Max >= 0) orelse
+                    error(badarg, [Tracer, Sampler0, Options]),
+                jaeger_passage_sampler_queue_limit:new(Sampler0, ReporterId, Max)
+        end,
     case jaeger_passage_reporter:start(ReporterId, Options) of
         {error, Reason} -> {error, Reason};
         {ok, Reporter}  ->
-            passage_tracer_registry:register(Tracer, Context, Sampler, Reporter)
+            passage_tracer_registry:register(Tracer, Context, Sampler1, Reporter)
     end.
 
 %% @doc Stops the tracer which has been started by {@link start_tracer/3}.

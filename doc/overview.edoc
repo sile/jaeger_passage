@@ -16,10 +16,10 @@ $ rebar3 shell
 > ok = jaeger_passage:start_tracer(example_tracer, Sampler).
 
 %% Starts a root span.
-> RootSpan = passage:start_root_span(example_root, example_tracer).
+> RootSpan = passage:start_span(example_root, [{tracer, example_tracer}]).
 
 %% Starts a child span.
-> ChildSpan = passage:start_span(example_child, {child_of, RootSpan}).
+> ChildSpan = passage:start_span(example_child, [{child_of, RootSpan}]).
 
 %% Finishes the spans
 > passage:finish_span(ChildSpan).

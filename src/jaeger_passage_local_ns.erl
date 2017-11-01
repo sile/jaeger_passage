@@ -10,6 +10,7 @@
 %%------------------------------------------------------------------------------
 -export([child_spec/0]).
 -export([reporter_name/1]).
+-export([whereis_reporter/1]).
 
 %%------------------------------------------------------------------------------
 %% Application Internal Functions
@@ -20,4 +21,8 @@ child_spec() ->
 
 -spec reporter_name(jaeger_passage_reporter:reporter_id()) -> local:otp_name().
 reporter_name(TracerId) ->
-    local:otp_name({?MODULE, {reporeter, TracerId}}).
+    local:otp_name({?MODULE, {reporter, TracerId}}).
+
+-spec whereis_reporter(jaeger_passage_reporter:reporter_id()) -> pid() | undefined.
+whereis_reporter(TracerId) ->
+    local:whereis_name({?MODULE, {reporter, TracerId}}).

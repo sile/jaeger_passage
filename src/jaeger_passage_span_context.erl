@@ -44,8 +44,8 @@
 
 -record(?STATE,
         {
-          trace_id   = 0     :: trace_id(),
-          span_id    = 0     :: span_id(),
+          trace_id = 0       :: trace_id(),
+          span_id = 0        :: span_id(),
           is_sampled = false :: boolean(),
           debug_id           :: binary() | undefined
         }).
@@ -115,9 +115,9 @@ make_span_context_state([{_, Ref} | _]) ->
     #?STATE{trace_id = TraceId} =
         passage_span_context:get_state(passage_span:get_context(Ref)),
     #?STATE{
-        trace_id   = TraceId,
-        span_id    = rand:uniform(16#FFFFFFFFFFFFFFFF),
-        is_sampled = true
+        trace_id       = TraceId,
+        span_id        = rand:uniform(16#FFFFFFFFFFFFFFFF),
+        is_sampled     = true
        }.
 
 %% @private
@@ -226,11 +226,11 @@ get_flags_from_state(State) ->
     FlagSampled + FlagDebug.
 
 -spec state_to_string(#?STATE{}) -> binary().
-state_to_string(State = #?STATE{trace_id = TraceId, span_id = SpanId}) ->
-    DummyParentId = 0,
+state_to_string(State) ->
+    #?STATE{trace_id = TraceId, span_id = SpanId} = State,
     Flags = get_flags_from_state(State),
     list_to_binary(io_lib:format("~.16b:~.16b:~.16b:~.16b",
-                                 [TraceId, SpanId, DummyParentId, Flags])).
+                                 [TraceId, SpanId, 0, Flags])).
 
 -spec state_from_string(binary()) -> #?STATE{}.
 state_from_string(Str) ->
@@ -243,13 +243,13 @@ state_from_string(Str) ->
        }.
 
 -spec encode_state(#?STATE{}) -> binary().
-encode_state(State = #?STATE{trace_id = TraceId, span_id = SpanId}) ->
-    DummyParentId = 0,
+encode_state(State) ->
+    #?STATE{trace_id = TraceId, span_id = SpanId} = State,
     Flags = get_flags_from_state(State),
-    <<TraceId:128, SpanId:64, DummyParentId:64, Flags:32>>.
+    <<TraceId:128, SpanId:64, 0:64, Flags:32>>.
 
 -spec decode_state(binary()) -> {#?STATE{}, binary()}.
-decode_state(<<TraceId:128, SpanId:64, _:64, Flags:32, Bin/binary>>) ->
+decode_state(<<TraceId:128, SpanId:64, _ParentId:64, Flags:32, Bin/binary>>) ->
     State =
         #?STATE{
             trace_id = TraceId,

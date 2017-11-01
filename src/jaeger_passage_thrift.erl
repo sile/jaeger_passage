@@ -82,12 +82,20 @@ make_tag_value(X) when is_binary(X)  -> {?TAG_TYPE_STRING, 3, X};
 make_tag_value(X) when is_float(X)   -> {?TAG_TYPE_DOUBLE, 4, X};
 make_tag_value(X) when is_integer(X) -> {?TAG_TYPE_LONG,   6, {i64, X}};
 make_tag_value(X) ->
-    try list_to_binary(X) of
-        Binary -> {?TAG_TYPE_STRING, 3, Binary}
-    catch
-        error:badarg ->
-            Binary = list_to_binary(io_lib:format("~w", [X])),
-            {?TAG_TYPE_STRING, 3, Binary}
+    Size = erlang:external_size(X),
+    case Size > 1024 of
+        true ->
+            {?TAG_TYPE_STRING, 3,
+             list_to_binary(io_lib:format("...~p bytes... (ommitted by ~p)",
+                                          [Size, ?MODULE]))};
+        false ->
+            try list_to_binary(X) of
+                Binary -> {?TAG_TYPE_STRING, 3, Binary}
+            catch
+                error:badarg ->
+                    Binary = list_to_binary(io_lib:format("~1024p", [X])),
+                    {?TAG_TYPE_STRING, 3, Binary}
+            end
     end.
 
 -spec make_spans([passage_span:span()]) -> thrift_protocol:thrift_list().
@@ -98,12 +106,18 @@ make_spans(Spans) ->
 make_span(Span) ->
     Context = passage_span:get_context(Span),
     TraceId = jaeger_passage_span_context:get_trace_id(Context),
+    Refs =
+        lists:filter(
+          fun ({_, S}) ->
+                  0 =/= jaeger_passage_span_context:get_span_id(passage_span:get_context(S))
+          end,
+          passage_span:get_refs(Span)),
     ParentSpanId =
-        case [Ref || {child_of, Ref} <- passage_span:get_refs(Span)] of
-            []        -> 0;
-            [Ref | _] ->
-                RefContext = passage_span:get_context(Ref),
-                jaeger_passage_span_context:get_span_id(RefContext)
+        case Refs of
+            [{_, Parent} | _] ->
+                jaeger_passage_span_context:get_span_id(
+                  passage_span:get_context(Parent));
+            _ -> 0
         end,
     Tags0 = passage_span:get_tags(Span),
     Tags1 =
@@ -118,7 +132,7 @@ make_span(Span) ->
          3 => {i64, jaeger_passage_span_context:get_span_id(Context)},
          4 => {i64, ParentSpanId},
          5 => atom_to_binary(passage_span:get_operation_name(Span), utf8),
-         6 => make_references(passage_span:get_refs(Span)),
+         6 => make_references(Refs),
          7 => {i32, jaeger_passage_span_context:get_flags(Context)},
          8 => {i64, timestamp_to_us(passage_span:get_start_time(Span))},
          9 => {i64, get_duration_us(Span)},
@@ -127,7 +141,7 @@ make_span(Span) ->
         }
       }.
 
--spec make_references(passage_span:normalized_refs()) -> thrift_protocol:thrift_list().
+-spec make_references(passage:refs()) -> thrift_protocol:thrift_list().
 make_references(Refs) ->
     Elements =
         lists:filtermap(
@@ -141,7 +155,7 @@ make_references(Refs) ->
           Refs),
     ?LIST(Elements).
 
--spec make_reference(passage_span:normalized_ref()) -> thrift_protocol:struct().
+-spec make_reference(passage:ref()) -> thrift_protocol:struct().
 make_reference(Ref) ->
     RefType =
         case Ref of
