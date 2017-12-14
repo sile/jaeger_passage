@@ -164,7 +164,7 @@ report(ReporterId, Span) ->
 %%------------------------------------------------------------------------------
 %% @private
 init({ReporterId, Options}) ->
-    Format = proplists:get_value(thrift_protocol, Options, compact),
+    Format = proplists:get_value(thrift_format, Options, compact),
     DefaultPort =
         case Format of
             compact -> 6831;
