@@ -127,10 +127,10 @@ make_span(Span) ->
         end,
     #thrift_protocol_struct{
        fields = #{
-         1 => {i64, TraceId band 16#FFFFFFFFFFFFFFFF},
-         2 => {i64, TraceId bsr 64},
-         3 => {i64, jaeger_passage_span_context:get_span_id(Context)},
-         4 => {i64, ParentSpanId},
+         1 => {i64, to_i64(TraceId)},
+         2 => {i64, to_i64(TraceId bsr 64)},
+         3 => {i64, to_i64(jaeger_passage_span_context:get_span_id(Context))},
+         4 => {i64, to_i64(ParentSpanId)},
          5 => atom_to_binary(passage_span:get_operation_name(Span), utf8),
          6 => make_references(Refs),
          7 => {i32, jaeger_passage_span_context:get_flags(Context)},
@@ -168,9 +168,9 @@ make_reference(Ref) ->
     #thrift_protocol_struct{
        fields = #{
          1 => {i32, RefType},
-         2 => {i64, TraceId band 16#FFFFFFFFFFFFFFFF},
-         3 => {i64, TraceId bsr 64},
-         4 => {i64, SpanId}
+         2 => {i64, to_i64(TraceId)},
+         3 => {i64, to_i64(TraceId bsr 64)},
+         4 => {i64, to_i64(SpanId)}
         }
       }.
 
@@ -191,3 +191,8 @@ get_duration_us(Span) ->
     Start = passage_span:get_start_time(Span),
     {ok, Finish} = passage_span:get_finish_time(Span),
     timer:now_diff(Finish, Start).
+
+-spec to_i64(non_neg_integer()) -> integer().
+to_i64(N) ->
+    <<S:64/signed>> = <<N:64>>,
+    S.
