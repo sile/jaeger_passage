@@ -66,12 +66,12 @@
 
 -record(?STATE,
         {
-          socket        :: gen_udp:socket(),
-          thrift_format :: thrift_protocol:format(),
-          agent_host    :: inet:hostname(),
-          agent_port    :: inet:port_number(),
-          service_name  :: atom(),
-          service_tags  :: passage:tags()
+          socket               :: gen_udp:socket(),
+          thrift_format        :: thrift_protocol:format(),
+          agent_host           :: inet:hostname(),
+          agent_port           :: inet:port_number(),
+          default_service_name :: atom(),
+          process_tags         :: passage:tags()
         }).
 
 %%------------------------------------------------------------------------------
@@ -86,14 +86,14 @@
 -type start_option() :: {thrift_format, thrift_protocol:format()}
                       | {agent_host, inet:hostname()}
                       | {agent_port, inet:port_number()}
-                      | {service_name, atom()}
-                      | {service_tags, passage:tags()}.
+                      | {default_service_name, atom()}
+                      | {process_tags, passage:tags()}.
 %% <ul>
 %%   <li><b>thrift_format</b>: The format for encoding thrift messages. The default value is `compact'.</li>
 %%   <li><b>agent_host</b>: The hostname of the jaeger agent. The default value is `"127.0.0.1"'.</li>
 %%   <li><b>agent_port</b>: The port of the jaeger agent. The default values for the thrift format `compact' and `binary' are `6831' and `6832' respectively.</li>
-%%   <li><b>service_name</b>: The name of the service which reports the spans. The default value is `ReporterId'.</li>
-%%   <li><b>service_tags</b>: The tags of the service. The default value is `#{}'.</li>
+%%   <li><b>default_service_name</b>: The default service name. If a reporting span has `location.application' tag, the value is used as the service name instead of this. The default value is `ReporterId'.</li>
+%%   <li><b>process_tags</b>: The tags of the reporting process. The default value is `#{}'.</li>
 %% </ul>
 
 %%------------------------------------------------------------------------------
@@ -172,8 +172,8 @@ init({ReporterId, Options}) ->
         end,
     AgentHost = proplists:get_value(agent_host, Options, "127.0.0.1"),
     AgentPort = proplists:get_value(agent_port, Options, DefaultPort),
-    ServiceName = proplists:get_value(service_name, Options, ReporterId),
-    Tags0 = proplists:get_value(service_tags, Options, #{}),
+    DefaultServiceName = proplists:get_value(default_service_name, Options, ReporterId),
+    Tags0 = proplists:get_value(process_tags, Options, #{}),
 
     {ok, Hostname} = inet:gethostname(),
     {ok, Version} = application:get_key(vsn),
@@ -192,8 +192,8 @@ init({ReporterId, Options}) ->
             thrift_format = Format,
             agent_host    = AgentHost,
             agent_port    = AgentPort,
-            service_name  = ServiceName,
-            service_tags  = Tags1
+            default_service_name  = DefaultServiceName,
+            process_tags  = Tags1
            },
     {ok, State}.
 
@@ -223,7 +223,8 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal Functions
 %%------------------------------------------------------------------------------
 -spec handle_report(passage_span:span(), #?STATE{}) -> {noreply, #?STATE{}}.
-handle_report(Span, State = #?STATE{service_name = Name, service_tags = Tags}) ->
+handle_report(Span, State = #?STATE{default_service_name = DefaultName, process_tags = Tags}) ->
+    Name = maps:get('location.application', passage_span:get_tags(Span), DefaultName),
     Message = jaeger_passage_thrift:make_emit_batch_message(Name, Tags, [Span]),
     Encoded = thrift_protocol:encode_message(Message, State#?STATE.thrift_format),
     ok = gen_udp:send(State#?STATE.socket, State#?STATE.agent_host, State#?STATE.agent_port, Encoded),
