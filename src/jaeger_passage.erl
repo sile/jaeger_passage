@@ -84,7 +84,14 @@ start_tracer(Tracer, Sampler0, Options) ->
                     error(badarg, [Tracer, Sampler0, Options]),
                 jaeger_passage_sampler_queue_limit:new(Sampler0, ReporterId, Max)
         end,
-    case jaeger_passage_reporter:start(ReporterId, Options) of
+
+    ReporterOptions =
+        lists:filter(fun ({reporter_id, _}) -> false;
+                         ({max_queue_len, _}) -> false;
+                         (_) -> true
+                     end,
+                     Options),
+    case jaeger_passage_reporter:start(ReporterId, ReporterOptions) of
         {error, Reason} -> {error, Reason};
         {ok, Reporter}  ->
             passage_tracer_registry:register(Tracer, Context, Sampler1, Reporter)
