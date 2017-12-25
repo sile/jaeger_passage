@@ -106,9 +106,10 @@ get_flags(Context) ->
 %%------------------------------------------------------------------------------
 %% @private
 make_span_context_state([]) ->
+    TracerId = rand:uniform(16#FFFFFFFFFFFFFFFF),
     #?STATE{
-        trace_id   = rand:uniform(16#FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF),
-        span_id    = rand:uniform(16#FFFFFFFFFFFFFFFF),
+        trace_id   = TracerId,
+        span_id    = TracerId,
         is_sampled = true
        };
 make_span_context_state([{_, Ref} | _]) ->
