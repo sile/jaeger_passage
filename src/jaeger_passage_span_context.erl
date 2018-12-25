@@ -87,7 +87,7 @@ get_span_id(Context) ->
     (passage_span_context:get_state(Context))#?STATE.span_id.
 
 %% @private
--spec get_debug_id(passage_span_context:context()) -> {ok, binary()} | eror.
+-spec get_debug_id(passage_span_context:context()) -> {ok, binary()} | error.
 get_debug_id(Context) ->
     State = passage_span_context:get_state(Context),
     case State#?STATE.debug_id of
