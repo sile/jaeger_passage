@@ -1,10 +1,10 @@
 {"1.1.0",
-[{<<"local">>,{pkg,<<"local">>,<<"0.2.0">>},0},
- {<<"passage">>,{pkg,<<"passage">>,<<"0.2.4">>},0},
- {<<"thrift_protocol">>,{pkg,<<"thrift_protocol">>,<<"0.1.2">>},0}]}.
+[{<<"local">>,{pkg,<<"local">>,<<"0.2.1">>},0},
+ {<<"passage">>,{pkg,<<"passage">>,<<"0.2.6">>},0},
+ {<<"thrift_protocol">>,{pkg,<<"thrift_protocol">>,<<"0.1.3">>},0}]}.
 [
 {pkg_hash,[
- {<<"local">>, <<"91466ED42F5E3509E097C4F57ED58C03362D64D537EF8B4AF0CA90774F7DBAD3">>},
- {<<"passage">>, <<"C3E0F34742C54DAA174167666BF6924768A417D68FBB736B91EEAA2A5F269735">>},
- {<<"thrift_protocol">>, <<"A3741E439567F6D7D232ACFF42AFF9ED317A1A32BF5F7EB1CC89F90DDEA0361B">>}]}
+ {<<"local">>, <<"F82483CD6DB6A39B0E4C59B37C2FCCCF5B96D90A746AFC3D79A81D31E3D40963">>},
+ {<<"passage">>, <<"7B0A6F0A6806B056DC3323A6A0243503642E6425F45E33B87277EA0BE88BD130">>},
+ {<<"thrift_protocol">>, <<"CDD0C06BFC235159D789353CBB4F01F9FF04592F30329CB3DF2C77E28D92CCC0">>}]}
 ].
