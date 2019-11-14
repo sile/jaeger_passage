@@ -56,8 +56,10 @@ propagation_test_() ->
                Span0 = passage:start_span(foo, [{tracer, tracer}]),
                Span1 = passage:set_baggage_items(Span0, #{<<"a">> => <<"b">>}),
 
-               #{<<"uber-trace-id">> := _, <<"uberctx-a">> := _} = Injected =
+               #{<<"uber-trace-id">> := TraceId, <<"uberctx-a">> := _} = Injected =
                    passage:inject_span(Span1, http_header, fun maps:put/3, #{}),
+
+               ?assertEqual(match, re:run(TraceId, <<"^[0-9a-f]{32}:[0-9a-f]{16}:0:[0-3]$">>, [{capture, none}])),
 
                Extracted =
                    passage:extract_span(

@@ -229,7 +229,7 @@ get_flags_from_state(State) ->
 state_to_string(State) ->
     #?STATE{trace_id = TraceId, span_id = SpanId} = State,
     Flags = get_flags_from_state(State),
-    list_to_binary(io_lib:format("~.16b:~.16b:~.16b:~.16b",
+    list_to_binary(io_lib:format("~32.16.0b:~16.16.0b:~.16b:~.16b",
                                  [TraceId, SpanId, 0, Flags])).
 
 -spec state_from_string(binary()) -> #?STATE{}.
