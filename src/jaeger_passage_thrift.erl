@@ -15,7 +15,7 @@
 %%------------------------------------------------------------------------------
 %% Application Internal API
 %%------------------------------------------------------------------------------
--export([make_emit_batch_message/3]).
+-export([make_emit_batch_message/3, make_batch/3]).
 
 %%------------------------------------------------------------------------------
 %% Macros
@@ -48,6 +48,12 @@ make_emit_batch_message(ServiceName, ServiceTags, Spans) ->
        sequence_id  = 0,
        body         = ?STRUCT(Batch)
       }.
+
+-spec make_batch(atom(), passage:tags(), [passage_span:span()]) ->
+                                     thrift_protocol:struct().
+make_batch(ServiceName, ServiceTags, Spans) ->
+    Process = make_process(ServiceName, ServiceTags),
+    ?STRUCT(Process, make_spans(Spans)).
 
 %%------------------------------------------------------------------------------
 %% Internal Functions
