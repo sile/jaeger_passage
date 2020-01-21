@@ -1,10 +1,10 @@
 {"1.1.0",
 [{<<"local">>,{pkg,<<"local">>,<<"0.2.1">>},0},
  {<<"passage">>,{pkg,<<"passage">>,<<"0.2.6">>},0},
- {<<"thrift_protocol">>,{pkg,<<"thrift_protocol">>,<<"0.1.3">>},0}]}.
+ {<<"thrift_protocol">>,{pkg,<<"thrift_protocol">>,<<"0.1.5">>},0}]}.
 [
 {pkg_hash,[
  {<<"local">>, <<"F82483CD6DB6A39B0E4C59B37C2FCCCF5B96D90A746AFC3D79A81D31E3D40963">>},
  {<<"passage">>, <<"7B0A6F0A6806B056DC3323A6A0243503642E6425F45E33B87277EA0BE88BD130">>},
- {<<"thrift_protocol">>, <<"CDD0C06BFC235159D789353CBB4F01F9FF04592F30329CB3DF2C77E28D92CCC0">>}]}
+ {<<"thrift_protocol">>, <<"300DB7CA06BED397406A4680AD3DD3A0212AC7BEABDC81FA03C3C3DADEA13673">>}]}
 ].
