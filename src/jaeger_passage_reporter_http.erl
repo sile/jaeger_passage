@@ -74,7 +74,7 @@
                       | {process_tags, passage:tags()}.
 %% <ul>
 %%   <li><b>endpoint</b>: The jaeger endpoint URL for sending thrift messages. The default value is `http://127.0.0.1:14268'.</li>
-%%   <li><b>http_client</b>: The callback to call to send span to jaeger.</li>
+%%   <li><b>http_client</b>: The callback to call to send span to jaeger. The httpc client is used by default.</li>
 %%   <li><b>default_service_name</b>: The default service name. If a reporting span has `location.application' tag, the value is used as the service name instead of this. The default value is `ReporterId'.</li>
 %%   <li><b>process_tags</b>: The tags of the reporting process. The default value is `#{}'.</li>
 %% </ul>
@@ -112,8 +112,8 @@ init({ReporterId, Options}) ->
     Endpoint = proplists:get_value(endpoint, Options, "http://127.0.0.1:14268"),
     EndpointURL = Endpoint ++ "/api/traces",
 
-    HttpClient = proplists:get_value(http_client, Options),
-    HttpClient =/= undefined orelse error(badarg, [ReporterId, Options]),
+    HttpClient = proplists:get_value(http_client, Options, fun httpc_client/5),
+    is_function(HttpClient, 5) orelse error(badarg, [ReporterId, Options]),
 
     DefaultServiceName = proplists:get_value(default_service_name, Options, ReporterId),
     Tags0 = proplists:get_value(process_tags, Options, #{}),
@@ -171,3 +171,15 @@ handle_report(Span, State = #?STATE{default_service_name = DefaultName, process_
     Headers = [?CONTENT_TYPE],
     HttpClient(URI, post, Headers, Encoded, Options),
     {noreply, State}.
+
+-spec httpc_client(
+        Url    :: string(),
+        Method :: post,
+        Headers :: [{string(), string()}],
+        Body :: string() | binary(),
+        ReporterOptions :: start_options()) ->
+    ok.
+
+httpc_client(Url, Method, _Headers, Body, _ReporterOptions) ->
+    httpc:request(Method, {Url, [], "application/x-thrift", Body}, [], []),
+    ok.

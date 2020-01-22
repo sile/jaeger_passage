@@ -64,7 +64,8 @@ error_http_test() ->
 
     %% Starts `http_reporter'
     ?assertMatch({error, {{badarg, _}, _}}, jaeger_passage_reporter:start(http_reporter, [
-        {protocol, http}
+        {protocol, http},
+        {http_client, undefined}
     ])),
 
     %% Starts `http_reporter'
