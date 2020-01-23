@@ -87,7 +87,7 @@
 -spec start(reporter_id()) -> {ok, passage_reporter:reporter()} | {error, Reason} when
       Reason :: {already_started, pid()} | term().
 start(ReporterId) ->
-    start(ReporterId, [{protocol, udp}]).
+    start(ReporterId, []).
 
 %% @doc Starts a reporter process.
 -spec start(reporter_id(), start_options()) -> {ok, Reporter} | {error, Reason} when
