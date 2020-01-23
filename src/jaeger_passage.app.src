@@ -1,12 +1,11 @@
 {application,jaeger_passage,
              [{description,"Jaeger client library for Erlang"},
-              {vsn,"0.1.13"},
+              {vsn,"0.1.14"},
               {registered,[]},
               {mod,{jaeger_passage_app,[]}},
               {applications,[kernel,stdlib,inets,local,passage,
                              thrift_protocol]},
               {env,[]},
               {modules,[]},
-              {maintainers,["Takeru Ohta"]},
               {licenses,["MIT"]},
               {links,[{"GitHub","https://github.com/sile/jaeger_passage"}]}]}.
