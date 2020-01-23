@@ -45,6 +45,23 @@ Browses the tracing result:
 $ firefox http://localhost:16686/
 ```
 
+Selecting reporter
+------------------
+
+By default 'compact' jaeger.thrift over UDP reporter is used. However it is
+possible to select different reporter. Bellow is a configuration matrics for
+available options:
+
+| protocol | thrift_protocol | jaeger port | description                      |
+|----------|-----------------|-------------|----------------------------------|
+| udp      | compact         | 6831        | accept jaeger.thrift over compact thrift protocol (default) |
+| udp      | binary          | 6832        | accept jaeger.thrift over binary thrift protocol |
+| http     | N/A             | 14268       | accept jaeger.thrift directly from clients |
+
+The HTTP version is beneficial if you don't have jaeger agents deployed or your
+spans are greater than max udp packet size (65Kb).
+Otherwise it is better to use default.
+
 References
 -----------
 
@@ -52,3 +69,4 @@ References
 - [Jaeger](https://uber.github.io/jaeger/)
 - [jaeger-client-go/README.md](https://github.com/jaegertracing/jaeger-client-go/blob/v2.9.0/README.md)
 - [Jaeger Client Library](https://github.com/jaegertracing/jaeger/blob/master/docs/client_libraries.md)
+- [Jaeger default ports](https://www.jaegertracing.io/docs/1.8/getting-started/)

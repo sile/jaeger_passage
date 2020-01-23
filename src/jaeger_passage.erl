@@ -33,7 +33,7 @@
       Tracer :: passage:tracer_id(),
       Sampler :: passage_sampler:sampler().
 start_tracer(Tracer, Sampler) ->
-    start_tracer(Tracer, Sampler, []).
+    start_tracer(Tracer, Sampler, [{protocol, udp}]).
 
 %% @doc Starts a tracer for Jaeger.
 %%
