@@ -1,4 +1,7 @@
-%% @doc A reporter that sends the spans to an jaeger agent
+%% @doc A reporter that sends the spans to an jaeger collector using HTTP.
+%%
+%% To start a reporter process, please use {@link jaeger_passage_reporter:start/1} or {@link jaeger_passage_reporter:start/2}.
+%%
 %%
 %% === Examples ===
 %%
@@ -15,15 +18,8 @@
 %% %% Starts and finishes a span
 %% Span = passage:start_span(example, [{tracer, example_tracer}]).
 %%
-%% passage:finish_span(Span). % The span will send to the jaeger agent on the localhost
+%% passage:finish_span(Span). % The span will send to the jaeger collector on the localhost
 %% '''
-%%
-%% === Refereces ===
-%%
-%% <ul>
-%% <li><a href="http://jaeger.readthedocs.io/en/latest/architecture/#agent">Jaeger - Architecture - Agent</a></li>
-%% <li><a href="http://jaeger.readthedocs.io/en/latest/deployment/#agent">Jaeger - Deployment - Agent</a></li>
-%% </ul>
 -module(jaeger_passage_reporter_http).
 
 -behaviour(gen_server).
@@ -33,6 +29,8 @@
 %%------------------------------------------------------------------------------
 %% Exported API
 %%------------------------------------------------------------------------------
+-export([httpc_client/5]).
+
 -export_type([start_option/0, start_options/0]).
 
 %%------------------------------------------------------------------------------
@@ -66,25 +64,28 @@
 %%------------------------------------------------------------------------------
 
 -type start_options() :: [start_option()].
-%% Options for {@link start/2}.
+%% Options for {@link jaeger_passage_reporter:start/2}.
 
--type start_option() :: {endpoint, string()}
+-type start_option() :: {default_service_name, atom()}
+                      | {process_tags, passage:tags()}
+                      | {endpoint, string()}
                       | {http_client, http_client()}
-                      | {default_service_name, atom()}
-                      | {process_tags, passage:tags()}.
+                      | (HttpClientSpecificOption :: any()).
 %% <ul>
-%%   <li><b>endpoint</b>: The jaeger endpoint URL for sending thrift messages. The default value is `http://127.0.0.1:14268'.</li>
-%%   <li><b>http_client</b>: The callback to call to send span to jaeger. The httpc client is used by default.</li>
 %%   <li><b>default_service_name</b>: The default service name. If a reporting span has `location.application' tag, the value is used as the service name instead of this. The default value is `ReporterId'.</li>
 %%   <li><b>process_tags</b>: The tags of the reporting process. The default value is `#{}'.</li>
+%%   <li><b>endpoint</b>: The jaeger endpoint URL for sending thrift messages. The default value is `http://127.0.0.1:14268'.</li>
+%%   <li><b>http_client</b>: The callback to call to send span to jaeger. {@link httpc_client/5} is used by default.</li>
 %% </ul>
-%% Example of a http_client calback
+%%
+%% Example of a `http_client' calback:
+%% ```
 %% Client = fun(Url, Method, Headers, Body, ReporterOptions) ->
 %%    User = proplists:get_value(user, ReporterOptions),
 %%    Password = proplists:get_value(password, ReporterOptions),
 %%    ibrowse:send_req(Url, Headers, Method, Body, [{basic_auth, {User,  Password}}])
 %% end.
-
+%% '''
 
 -type http_client() :: fun((
         Url    :: string(),
@@ -93,6 +94,15 @@
         Body :: string() | binary(),
         ReporterOptions :: start_options()) ->
     ok).
+%% Type of HTTP client.
+
+%%------------------------------------------------------------------------------
+%% Exported Functions
+%%------------------------------------------------------------------------------
+%% @doc The default HTTP client based on the standard `httpc' module.
+httpc_client(Url, Method, _Headers, Body, _ReporterOptions) ->
+    httpc:request(Method, {Url, [], "application/x-thrift", Body}, [], []),
+    ok.
 
 %%------------------------------------------------------------------------------
 %% Application Internal Functions
@@ -171,15 +181,3 @@ handle_report(Span, State = #?STATE{default_service_name = DefaultName, process_
     Headers = [?CONTENT_TYPE],
     HttpClient(URI, post, Headers, Encoded, Options),
     {noreply, State}.
-
--spec httpc_client(
-        Url    :: string(),
-        Method :: post,
-        Headers :: [{string(), string()}],
-        Body :: string() | binary(),
-        ReporterOptions :: start_options()) ->
-    ok.
-
-httpc_client(Url, Method, _Headers, Body, _ReporterOptions) ->
-    httpc:request(Method, {Url, [], "application/x-thrift", Body}, [], []),
-    ok.

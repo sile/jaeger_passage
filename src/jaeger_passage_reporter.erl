@@ -1,6 +1,6 @@
 %% @copyright 2017 Takeru Ohta <phjgt308@gmail.com>
 %%
-%% @doc A reporter that sends the spans to an jaeger agent
+%% @doc A reporter that sends the spans to an jaeger agent (UDP) or collector (HTTP).
 %%
 %% === Examples ===
 %%
@@ -57,27 +57,11 @@
 -type start_options() :: [start_option()].
 %% Options for {@link start/2}.
 
--type start_option() :: jaeger_passage_reporter_udp:start_option()
-                      | jaeger_passage_reporter_http:start_option()
-                      | {protocol, udp | http}
-                      | {default_service_name, atom()}
-                      | {process_tags, passage:tags()}.
-
-%% Common reporter options
+-type start_option() :: {protocol, udp | http}
+                      | jaeger_passage_reporter_udp:start_option()
+                      | jaeger_passage_reporter_http:start_option().
 %% <ul>
 %%   <li><b>protocol</b>: Communication protocol used to connect to jaeger. The value is used to select reporter module. Possible values are: `udp' | `http'. The default value is `udp'.</li>
-%%   <li><b>default_service_name</b>: The default service name. If a reporting span has `location.application' tag, the value is used as the service name instead of this. The default value is `ReporterId'.</li>
-%%   <li><b>process_tags</b>: The tags of the reporting process. The default value is `#{}'.</li>
-%% </ul>
-%% UDP reporter specific options
-%% <ul>
-%%   <li><b>thrift_format</b>: The format for encoding thrift messages. The default value is `compact'.</li>
-%%   <li><b>agent_host</b>: The hostname of the jaeger agent. The default value is `"127.0.0.1"'.</li>
-%%   <li><b>agent_port</b>: The port of the jaeger agent. The default values for the thrift format `compact' and `binary' are `6831' and `6832' respectively.</li>
-%% </ul>
-%% HTTP reporter specific options
-%% <ul>
-%%   <li><b>endpoint</b>: The jaeger endpoint URL for sending thrift messages. The default value is `http://127.0.0.1:14268'.</li>
 %% </ul>
 
 %%------------------------------------------------------------------------------

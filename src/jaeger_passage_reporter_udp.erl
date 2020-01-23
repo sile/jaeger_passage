@@ -1,4 +1,6 @@
-%% @doc A reporter that sends the spans to an jaeger agent
+%% @doc A reporter that sends the spans to an jaeger agent using UDP.
+%%
+%% To start a reporter process, please use {@link jaeger_passage_reporter:start/1} or {@link jaeger_passage_reporter:start/2}.
 %%
 %% === Examples ===
 %%
@@ -17,13 +19,6 @@
 %%
 %% passage:finish_span(Span). % The span will send to the jaeger agent on the localhost
 %% '''
-%%
-%% === Refereces ===
-%%
-%% <ul>
-%% <li><a href="http://jaeger.readthedocs.io/en/latest/architecture/#agent">Jaeger - Architecture - Agent</a></li>
-%% <li><a href="http://jaeger.readthedocs.io/en/latest/deployment/#agent">Jaeger - Deployment - Agent</a></li>
-%% </ul>
 -module(jaeger_passage_reporter_udp).
 
 -behaviour(gen_server).
@@ -65,17 +60,19 @@
 %%------------------------------------------------------------------------------
 
 -type start_options() :: [start_option()].
-%% Options for {@link start/2}.
+%% Options for {@link jaeger_passage_reporter:start/2}.
 
--type start_option() :: {thrift_format, thrift_protocol:format()}
+-type start_option() :: {default_service_name, atom()}
+                      | {process_tags, passage:tags()}
+                      | {thrift_format, thrift_protocol:format()}
                       | {agent_host, inet:hostname()}
                       | {agent_port, inet:port_number()}.
 %% <ul>
+%%   <li><b>default_service_name</b>: The default service name. If a reporting span has `location.application' tag, the value is used as the service name instead of this. The default value is `ReporterId'.</li>
+%%   <li><b>process_tags</b>: The tags of the reporting process. The default value is `#{}'.</li>
 %%   <li><b>thrift_format</b>: The format for encoding thrift messages. The default value is `compact'.</li>
 %%   <li><b>agent_host</b>: The hostname of the jaeger agent. The default value is `"127.0.0.1"'.</li>
 %%   <li><b>agent_port</b>: The port of the jaeger agent. The default values for the thrift format `compact' and `binary' are `6831' and `6832' respectively.</li>
-%%   <li><b>default_service_name</b>: The default service name. If a reporting span has `location.application' tag, the value is used as the service name instead of this. The default value is `ReporterId'.</li>
-%%   <li><b>process_tags</b>: The tags of the reporting process. The default value is `#{}'.</li>
 %% </ul>
 
 %%------------------------------------------------------------------------------
